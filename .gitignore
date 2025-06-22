@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyc
+
+digest.txt
+cachedir/
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+podenv/
+mllmagent_env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# DotEnv configuration
+.env
+
+# Database
+*.db
+*.rdb
+
+# VS Code
+.vscode/
+
+# exclude data from source control by default
+/data/
+results/
+
+# Mac OS-specific storage files
+.DS_Store
