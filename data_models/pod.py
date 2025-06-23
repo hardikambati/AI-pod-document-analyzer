@@ -4,7 +4,7 @@ from pydantic import BaseModel, HttpUrl, Field
 
 class PODRequest(BaseModel):
     awb: str
-    pod_image_url: HttpUrl
+    pod_image_url: str
 
 
 class AgentMetadata(BaseModel):

@@ -5,12 +5,20 @@ from fastapi import (
     FastAPI,
     APIRouter,
 )
+from dotenv import load_dotenv
 from fastapi_utils.cbv import cbv
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
+
+from pydantic import ValidationError
 
 # Internal imports
 from services.pod import PODService
 from data_models.pod import PODRequest
+
+
+# Load env variables
+load_dotenv()
 
 
 # Configure logging
@@ -32,11 +40,8 @@ router = APIRouter()
 @cbv(router)
 class RootView:
 
-    def __init__(self):
-        self.service = PODService()
-
     @router.get("/")
-    async def read():
+    async def read(self):
         """
         Server status.
         """
@@ -44,7 +49,6 @@ class RootView:
             "message": "Server is up and running",
         }
         return JSONResponse(content=payload, status_code=status.HTTP_200_OK)
-
 
 
 @cbv(router)
@@ -58,7 +62,14 @@ class PODAnalysisView:
         """
         Extracts POD metadata from images using a pipeline that includes AI image data extraction.
         """
-        response = self.service.pipeline(request)
-        return JSONResponse(content=response)
-
+        try:
+            response = await self.service.pipeline(request)
+            return JSONResponse(content=response, status_code=status.HTTP_200_OK)
+        except ValidationError as e:
+            return JSONResponse(content={"detail": e.errors()}, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        except ValueError as e:
+            return JSONResponse(content={"detail": str(e)}, status_code=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return JSONResponse(content={"detail": str(e)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 app.include_router(router)

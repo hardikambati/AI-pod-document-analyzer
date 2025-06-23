@@ -25,11 +25,9 @@ class LLMService:
         self.model_name = model
         
         if "gemini" in self.model_name and not os.environ.get("GEMINI_API_KEY"):
-            logger.error("GEMINI_API_KEY environment variable not set.")
             raise ValueError("GEMINI_API_KEY environment variable not set.")
         
         self.text_prompt = "Extract the structured data from the following Image" 
-
         self.agent = Agent(
             model=self.model_name,
             result_type=AnalysisData,
@@ -84,15 +82,14 @@ class LLMService:
     async def run(self, image_master: ImageMaster) -> ImageMaster:
         """
         Driver method.
-        """
-        analysis_data: AnalysisData = None
-        agent_metadata: AgentMetadata = None
+        """       
+        agent_metadata = AgentMetadata(
+            model=self.model_name,
+            start_timestamp=str(datetime.now()),
+            metadata={"errors": []},
+            tokens=None
+        )
 
-        # add agent metadaa
-        agent_metadata.model = self.model_name
-        agent_metadata.start_timestamp = str(datetime.now())
-        agent_metadata.metadata = {"errors": []}
-        
         awb = image_master.reference_data.awb_number
         logger.info(f"(AWB {awb}): Extracting structured analysis data...")
 
@@ -112,6 +109,7 @@ class LLMService:
 
             # populate extracted AI analysis data
             if extracted_data_result:
+                image_master.analysis_data.text_quality_score = extracted_data_result.text_quality_score
                 image_master.analysis_data.courier_partner = extracted_data_result.courier_partner
                 image_master.analysis_data.awb_number = extracted_data_result.awb_number
                 image_master.analysis_data.recipient_name = extracted_data_result.recipient_name
@@ -136,6 +134,5 @@ class LLMService:
         agent_metadata.tokens = token_usage
 
         image_master.agent_metadata = agent_metadata
-        image_master.analysis_data = analysis_data
 
         return image_master
